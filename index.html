@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FX Race Online</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+
+  #game-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #player {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 80px;
+    background-color: blue;
+    border-radius: 10px;
+  }
+
+  .enemy {
+    position: absolute;
+    width: 50px;
+    height: 80px;
+    background-color: red;
+    border-radius: 10px;
+  }
+
+  #score {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+  }
+
+  #game-over-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 999;
+  }
+
+  #retry-button {
+    display: block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  #retry-button:hover {
+    background-color: #2980b9;
+  }
+
+  .button-container {
+    position: fixed;
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .button {
+    margin: 0 10px;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    background-color: #3498db;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .button:hover {
+    background-color: #2980b9;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="player"></div>
+  <div id="score">Score: <span id="score-value">0</span></div>
+</div>
+
+<div id="game-over-popup">
+  <h2>Game Over!</h2>
+  <p>Your score: <span id="final-score">0</span></p>
+  <button id="retry-button">Retry</button>
+</div>
+
+<div class="button-container">
+  <button class="button" onclick="moveLeft()">Move Left</button>
+  <button class="button" onclick="moveRight()">Move Right</button>
+</div>
+
+<script>
+  const gameContainer = document.getElementById('game-container');
+  const player = document.getElementById('player');
+  const scoreElement = document.getElementById('score-value');
+  const gameOverPopup = document.getElementById('game-over-popup');
+  const retryButton = document.getElementById('retry-button');
+  let playerPosition = 50; // Initial player position
+  let score = 0;
+
+  function moveLeft() {
+    if (playerPosition > 0) {
+      playerPosition -= 50;
+      player.style.left = playerPosition + 'px';
+    }
+  }
+
+  function moveRight() {
+    if (playerPosition < gameContainer.offsetWidth - 50) {
+      playerPosition += 50;
+      player.style.left = playerPosition + 'px';
+    }
+  }
+
+  function createEnemy() {
+    const enemy = document.createElement('div');
+    enemy.classList.add('enemy');
+    const randomPosition = Math.floor(Math.random() * 8) * 50; // Random position for enemy
+    enemy.style.left = randomPosition + 'px';
+    gameContainer.appendChild(enemy);
+
+    moveEnemy(enemy);
+  }
+
+  function moveEnemy(enemy) {
+    let enemyPosition = parseInt(enemy.style.top) || 0;
+
+    const moveInterval = setInterval(() => {
+      enemyPosition += 5;
+      enemy.style.top = enemyPosition + 'px';
+
+      if (enemyPosition > gameContainer.offsetHeight) {
+        clearInterval(moveInterval);
+        enemy.remove();
+      }
+
+      if (checkCollision(enemy)) {
+        clearInterval(moveInterval);
+        endGame();
+      }
+    }, 50);
+  }
+
+  function checkCollision(enemy) {
+    const playerRect = player.getBoundingClientRect();
+    const enemyRect = enemy.getBoundingClientRect();
+
+    return !(
+      playerRect.top > enemyRect.bottom ||
+      playerRect.right < enemyRect.left ||
+      playerRect.bottom < enemyRect.top ||
+      playerRect.left > enemyRect.right
+    );
+  }
+
+  function endGame() {
+    gameOverPopup.style.display = 'block';
+    document.getElementById('final-score').textContent = score;
+  }
+
+  retryButton.addEventListener('click', () => {
+    location.reload(); // Reload the page to restart the game
+  });
+
+  setInterval(createEnemy, 2000); // Create new enemies every 2 seconds
+  setInterval(() => {
+    score++;
+    scoreElement.textContent = score;
+  }, 1000); // Increase score every second
+</script>
+
+</body>
+</html>
